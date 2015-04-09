@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+	Written by Havi Sullivan <http://havisullivan.com>
+	HTML, CSS, JavaScript portions licensed CC0
+	Images (c) their respective parties
+-->
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Linka Game Engine Demo</title>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script src="linka.js"></script>
+</head>
+<body>
+
+<canvas style="float:left;" id="linka" width="512" height="384"></canvas>
+<div style="float:left;width:512;height:384;margin-left:10px;">
+<h1>Linka Game Engine Demo</h1>
+<ul>
+	<li>Use arrow keys to maneuver.</li>
+	<li>Press SPACE to swing sword.</li>
+	<li>Kill bad guys and collect coins!</li>
+	<li><a href="https://github.com/blitterfly/linka">Download the source code.</a></li>
+</ul>
+</div>
+<script src="myplayer.js"></script>
+<script src="mysprites.js"></script>
+<script src="mymaps.js"></script>
+<script>
+var keyp = '';
+
+// bootstrap the game
+$('#linka').linka({
+	//debug: true, // enables debug messaging
+	//drawHitBoxes: true, // helps with hitbox debugging
+	mapWidth: 16, // in tiles
+	mapHeight: 12, // in tiles
+	oninit: function() {
+		this.debug('Linka initialized ' + this.getCanvasWidth() + 'x' + this.getCanvasHeight());
+		
+		// create all the maps
+		createMaps(this);
+		
+	},
+	onerror: function(failcode, error) {
+		console.log('Linka error: [0x' + failcode.toString(16) + '] ' + error);
+		console.log(error.stack);
+	},
+	onframe: function() {
+		var cxt = this.getContext();
+		
+		// display player health
+		var player = this.getPlayerObject();
+		cxt.save();
+		cxt.translate(10, this.getCanvasHeight() - 15);
+		cxt.font = 'bold 12px Arial';
+		var hpw = cxt.measureText('HP');
+		cxt.fillStyle = 'rgba(0, 0, 0, 0.75)';
+		cxt.fillRect(0, 0, 65 + hpw.width, 15);
+		cxt.fillStyle = 'red';
+		cxt.fillText('HP', 5, 12);
+		cxt.fillStyle = 'red';
+		cxt.fillRect(10 + hpw.width, 3, player.hp, 9);
+		cxt.restore();
+		
+		// display player money
+		cxt.save();
+		cxt.translate(this.getCanvasWidth() - 100, this.getCanvasHeight() - 15);
+		cxt.font = 'bold 12px Arial';
+		cxt.fillStyle = 'rgba(0, 0, 0, 0.75)';
+		cxt.fillRect(0, 0, 75, 15);
+		cxt.fillStyle = 'gold';
+		cxt.fillText('$ ' + player.money, 5, 12);
+		cxt.restore();
+		
+		if (this.debug()) {
+			// update fps
+			cxt.font = 'bold 12px Arial';
+			cxt.fillStyle = 'black';
+			var fps = this.getActualFramerate().toFixed(1) + ' FPS';
+			var fpsWidth = cxt.measureText(fps);
+			cxt.fillText(fps, this.getCanvasWidth() - fpsWidth.width - 10, 15);
+			
+			// update key pressed
+			if (window.keyp) {
+				var keytxt = 'Pressed: ' + window.keyp;
+				var keypwidth = cxt.measureText(keytxt);
+				cxt.fillText(keytxt, this.getCanvasWidth() - keypwidth.width - 10, 30);
+			}
+		}
+	},
+	onstart: function() {
+		this.debug('Linka started');
+		
+		// create player object and set initial pos
+		var player = new myplayer();
+		player.updateLocation(6*32, 6*32);
+		this.setPlayerObject(player);
+		this.setCurrentMap('map1');
+	},
+	onstop: function() {
+		this.debug('Linka stopped');
+	}
+});
+</script>
+</body>
+</html>
